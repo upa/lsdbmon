@@ -72,6 +72,9 @@
 /* List of all active connections. */
 struct list *apiserver_list;
 
+/* OSPF apiserver's bind address (defual INADDR_ANY) */
+struct in_addr ospf_apiserver_addr;
+
 /* -----------------------------------------------------------
  * Functions to lookup interfaces
  * -----------------------------------------------------------
@@ -615,7 +618,8 @@ ospf_apiserver_serv_sock_family (unsigned short port, int family)
   int rc;
 
   memset (&su, 0, sizeof (union sockunion));
-  su.sa.sa_family = family;
+  su.sin.sin_family = family;
+  su.sin.sin_addr = ospf_apiserver_addr;
 
   /* Make new socket */
   accept_sock = sockunion_stream_socket (&su);
@@ -627,7 +631,7 @@ ospf_apiserver_serv_sock_family (unsigned short port, int family)
   sockopt_reuseport (accept_sock);
 
   /* Bind socket to address and given port. */
-  rc = sockunion_bind (accept_sock, &su, port, NULL);
+  rc = sockunion_bind (accept_sock, &su, port, &su);
   if (rc < 0)
     {
       close (accept_sock);	/* Close socket */

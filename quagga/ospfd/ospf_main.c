@@ -90,6 +90,7 @@ struct option longopts[] =
   { "user",        required_argument, NULL, 'u'},
   { "group",       required_argument, NULL, 'g'},
   { "apiserver",   no_argument,       NULL, 'a'},
+  { "api_addr",    required_argument, NULL, 's'},
   { "version",     no_argument,       NULL, 'v'},
   { 0 }
 };
@@ -104,6 +105,7 @@ const char *pid_file = PATH_OSPFD_PID;
 
 #ifdef SUPPORT_OSPF_API
 extern int ospf_apiserver_enable;
+extern struct in_addr ospf_apiserver_addr;
 #endif /* SUPPORT_OSPF_API */
 
 /* Help information display. */
@@ -125,6 +127,7 @@ Daemon which manages OSPF.\n\n\
 -u, --user         User to run as\n\
 -g, --group        Group to run as\n\
 -a. --apiserver    Enable OSPF apiserver\n\
+-s, --api_addr     OSPF apiserver's bind address\n\
 -v, --version      Print program version\n\
 -C, --dryrun       Check configuration for validity and exit\n\
 -h, --help         Display this help and exit\n\
@@ -195,6 +198,7 @@ main (int argc, char **argv)
 #ifdef SUPPORT_OSPF_API
   /* OSPF apiserver is disabled by default. */
   ospf_apiserver_enable = 0;
+  ospf_apiserver_addr.s_addr = 0;
 #endif /* SUPPORT_OSPF_API */
 
   /* get program name */
@@ -204,7 +208,7 @@ main (int argc, char **argv)
     {
       int opt;
 
-      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:avC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:as:vC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -249,6 +253,12 @@ main (int argc, char **argv)
 #ifdef SUPPORT_OSPF_API
 	case 'a':
 	  ospf_apiserver_enable = 1;
+	  break;
+	case 's':
+	  if (inet_aton(optarg, &ospf_apiserver_addr) == 0) {
+	    zlog_err("invalid addr for api server");
+	    exit (1);
+	  }
 	  break;
 #endif /* SUPPORT_OSPF_API */
 	case 'v':
