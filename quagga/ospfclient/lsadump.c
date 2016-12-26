@@ -79,13 +79,14 @@ dump_router_lsa(struct router_lsa *rlsa)
 		inet_ntop(AF_INET, &rl->link_id, linkid, sizeof(linkid));
 		inet_ntop(AF_INET, &rl->link_data, data, sizeof(data));
 
-		printf("ROUTERLSA "
+		printf("LSATYPE=%d "
 		       "ADVROUTER=%s "
 		       "LSAID=%s "
 		       "LINKTYPE=%d "
 		       "LINKID=%s "
 		       "DATA=%s\n",
-		       advr, lsaid, rl->m[0].type, linkid, data);
+		       OSPF_ROUTER_LSA, advr, lsaid,
+		       rl->m[0].type, linkid, data);
 	}
 
 
@@ -108,11 +109,11 @@ dump_network_lsa(struct network_lsa *nlsa)
 		
 		inet_ntop(AF_INET, attached, ar, sizeof(ar));
 
-		printf("NETWORKLSA "
+		printf("LSATYPE=%d "
 		       "ADVROUTER=%s "
 		       "LSAID=%s "
 		       "ATTACHED=%s\n",
-		       advr, lsaid, ar);
+		       OSPF_NETWORK_LSA, advr, lsaid, ar);
 	}
 
 	return;

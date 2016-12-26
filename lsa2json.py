@@ -4,7 +4,7 @@ import re
 import sys
 import json
 
-# LSA types prefix of a line
+# LSA types
 ROUTER_LSA = 1
 NETWORK_LSA = 2
 
@@ -116,42 +116,42 @@ class LSDB :
             print "\t%s" % ' '.join(lsa.attached_routers)
             print
 
-def convert_lsadump_to_lsdb(dumpfile, lsdb) :
 
-    def line_to_dict(line) :
-        d = {}
-        s = line.strip().split(' ')
-        for p in s :
-            k, v = p.split('=')
-            if re.match(r'^\d+$', v) : d[k] = int (v)
-            else : d[k] = v
-        return d
+    def load(self, dumpfile) :
 
-    f = open(dumpfile, 'r')
+        def line_to_dict(line) :
+            d = {}
+            s = line.strip().split(' ')
+            for p in s :
+                k, v = p.split('=')
+                if re.match(r'^\d+$', v) : d[k] = int (v)
+                else : d[k] = v
+            return d
 
-    for l in f :
+        f = open(dumpfile, 'r')
 
-        d = line_to_dict(l)
-        lsa_type = d["LSATYPE"]
-        lsa_id = d["LSAID"]
-        lsa = lsdb.find_lsa(lsa_type, lsa_id)
-        if not lsa :
-            lsa = LSA(lsa_type = lsa_type, adv_router = d["ADVROUTER"],
-                      lsa_id = lsa_id)
-            lsdb.add_lsa(lsa)
+        for l in f :
 
-        if lsa_type == ROUTER_LSA :
-            rlink = RouterLSALink(link_type = d["LINKTYPE"],
-                                  link_id = d["LINKID"],
-                                  link_data = d["DATA"])
-            lsa.add_router_link(rlink)
+            d = line_to_dict(l)
+            lsa_type = d["LSATYPE"]
+            lsa_id = d["LSAID"]
+            lsa = self.find_lsa(lsa_type, lsa_id)
+            if not lsa :
+                lsa = LSA(lsa_type = lsa_type, adv_router = d["ADVROUTER"],
+                          lsa_id = lsa_id)
+                self.add_lsa(lsa)
 
-        if lsa_type == NETWORK_LSA :
-            lsa.add_attached_router(d["ATTACHED"])
+            if lsa_type == ROUTER_LSA :
+                rlink = RouterLSALink(link_type = d["LINKTYPE"],
+                                      link_id = d["LINKID"],
+                                      link_data = d["DATA"])
+                lsa.add_router_link(rlink)
 
-    f.close()
-        
-    return
+            if lsa_type == NETWORK_LSA :
+                lsa.add_attached_router(d["ATTACHED"])
+
+        f.close()
+        return
 
 
 def convert_lsdb_to_neighbor_info(lsdb) :
@@ -241,7 +241,7 @@ if __name__ == '__main__' :
         sys.exit(1)
 
     lsdb = LSDB()
-    convert_lsadump_to_lsdb(sys.argv[1], lsdb)
+    lsdb.load(sys.argv[1])
 
     #lsdb.dump()
 
