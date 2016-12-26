@@ -149,11 +149,19 @@ main (int argc, char **argv)
 	struct pollfd x[1];
 	struct ospf_apiclient *oc;
 
+	if (argc < 2) {
+		fprintf(stdout, "usage: lsadump [APISERVADDR]\n");
+		return 0;
+	}
 
 	lsdb = ospf_lsdb_new();
 
 	zprivs_init(&ospfd_privs);
 	oc = ospf_apiclient_connect(argv[1], ASYNCPORT);
+	if (!oc) {
+		fprintf(stderr, "failed to connect api server %s\n", argv[1]);
+		return -1;
+	}
 	ospf_apiclient_register_callback(oc, NULL, NULL, NULL, NULL, NULL,
 					 lsa_update_callback, NULL);
 
