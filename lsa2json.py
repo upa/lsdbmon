@@ -3,6 +3,8 @@
 import re
 import sys
 import json
+from optparse import OptionParser
+from datetime import datetime
 
 # LSA types
 ROUTER_LSA = 1
@@ -46,10 +48,14 @@ class LSA :
 
 class LSDB :
     
-    def __init__(self) :
+    def __init__(self, *args) :
         self.rdb = {} # for router lsa
         self.ndb = {} # for network lsa
         # key is LSA ID, value is class LSA instance
+
+        if args :
+            self.load(args[0])
+
         return
 
 
@@ -199,6 +205,44 @@ def convert_lsdb_to_neighbor_info(lsdb) :
     return neidb
 
 
+
+def convert_lsdb_to_neighbor_set(lsdb) :
+
+    """
+    create a dict contains neighbor info for drawing adjacency matrix.
+    { 
+        ROUTERID: (NEI_ID, NEI_ID, NEI_ID),
+        ROUTERID...
+    }
+
+    trace router lsa link type 1 (point-to-pint, virtual link) and
+    network lsa
+    """
+    
+    neidb = {}
+
+    # trace router lsa, link type 1 and 4
+    for lsa_id, lsa in lsdb.rdb.items() :
+
+        neidb[lsa_id] = set()
+
+        for rlink in lsa.attached_links :
+            if rlink.link_type == P2P_LINK or rlink.link_type == VIRTUAL_LINK :
+                neidb[lsa_id].add(rlink.link_id)
+
+    # trace network lsa. in network lsa, attached routers must establish
+    # neighbor each other (full mesh).
+    for lsa_id, lsa in lsdb.ndb.items() :
+
+        for src in lsa.attached_routers :
+            for dst in lsa.attached_routers :
+                if src == dst : continue
+                if not dst in neidb[src] :
+                    neidb[src].add(dst)
+
+    return neidb
+
+
 def convert_lsdb_to_graph_info(lsdb) :
 
     """
@@ -233,21 +277,94 @@ def convert_lsdb_to_graph_info(lsdb) :
             "links": links }
 
 
+def lsdb_diff(lsdb_new, lsdb_old) :
+
+    """
+    calculate diff of new lsdb and old lsdb
+
+    """
+
+    nnei = convert_lsdb_to_neighbor_set(lsdb_new)
+    onei = convert_lsdb_to_neighbor_set(lsdb_old)
+
+    lines = []
+    new_adjacent = set()
+    rem_adjacent = set()
+
+    # find new adjacency
+    for router_id, nei_set in nnei.items() :
+        if not router_id in onei :
+            lines.append("New Router: %s with Neighbor %s" %
+                         (router_id, ' '.join(nei_set)))
+        else :
+            new_nei = nei_set - onei[router_id]
+            
+            for nei in new_nei :
+                new_adjacent.add(' '.join(sorted([router_id, nei])))
+
+    for new_adj in new_adjacent :
+        lines.append("New Adjacency: %s" % new_adj)
+
+
+    # find removed adjacency
+    for router_id, nei_set in onei.items() :
+        if not router_id in nnei :
+            lines.append("Removed Router: %s with Neighbor %s" %
+                         (router_id, ' '.join(nei_set)))
+        else :
+            rem_nei = nei_set - nnei[router_id]
+            for nei in rem_nei :
+                rem_adjacent.add(' '.join(sorted([router_id, nei])))
+
+    for rem_adj in rem_adjacent :
+        lines.append("Removed Adjacency: %s" % rem_adj)
+
+    return lines
+
 
 if __name__ == '__main__' :
 
-    if len(sys.argv) < 2:
-        print "usage: lsa2json.py [lsadump output file]"
+    timestamp = datetime.now().strftime("%Y/%m/%d-%H:%M:%S")
+
+    desc = "usage: %prog [options]"
+    parser = OptionParser(desc)
+
+    parser.add_option('-d', '--dumpfile', type = "string", default = None,
+                      dest = 'dumpfile', help = "lsadump file name")
+    parser.add_option('-o', '--old-dumpfile', type = "string", default = None,
+                      dest = 'dumpfile_old', help = "old lsadump file name")
+    parser.add_option('-l', '--log', type = "string", default = None,
+                      dest = 'logfile', help = "dump diff log file name")
+
+    (options, args) = parser.parse_args()
+
+    if not options.dumpfile :
+        print "-d [lsadump output file] is required"
         sys.exit(1)
 
-    lsdb = LSDB()
-    lsdb.load(sys.argv[1])
 
-    #lsdb.dump()
 
+    # calculate neighbor and graph information
+    lsdb = LSDB(options.dumpfile)
     d = {
+        "timestamp": timestamp,
         "neighbor_info" : convert_lsdb_to_neighbor_info(lsdb),
         "graph_info": convert_lsdb_to_graph_info(lsdb),
     }
+
+
+    # calculate adjacency diff
+    if options.dumpfile_old :
+
+        lsdb_old = LSDB(options.dumpfile_old)
+        diff = lsdb_diff(lsdb, lsdb_old)
+
+        if options.logfile :
+            with open(options.logfile, 'a') as f :
+                for l in diff :
+                    f.write(timestamp + ":" + l + "\n")
+        else :
+            d["diff_log"] = diff
+
 
     print json.dumps(d, indent = 4)
