@@ -160,37 +160,49 @@ class LSDB :
         return
 
 
+def inet_itok(ip) :
+    # convert ipv4 string to %03d.%03d.%03d.%03d for sorting
+    l = map(int, ip.split('.'))
+    return "%03d.%03d.%03d.%03d" % (l[0], l[1], l[2], l[3]) # hummmmm...
+
 def convert_lsdb_to_neighbor_info(lsdb) :
 
     """
     create a dict contains neighbor info for drawing adjacency matrix.
-    { 
-        ROUTERID: [ { "type": p2p|vlink|network, neighbor: ROUTERID},
-                    { "type": p2p|vlink|network, neighbor: ROUTERID},
-                     ...
-                   ],
-        ROUTERID...
-    }
+    [ 
+        { router_id: ROUTERID,
+          neighbors: [
+                        { "type": p2p|vlink|network, router_id: ROUTERID},
+                        { "type": p2p|vlink|network, router_id: ROUTERID},
+                        ...
+                      ]
+        },
+        { router_id: ROUTERID, ...
+    ]
 
     trace router lsa link type 1 (point-to-pint, virtual link) and
     network lsa
     """
     
-    neidb = {}
+    neidb = []
+    nei_dict = {}
 
     # trace router lsa, link type 1 and 4
     for lsa_id, lsa in lsdb.rdb.items() :
 
-        neidb[lsa.adv_router] = []
+        rtr = { "router_id": lsa_id, "neighbors": []}
+        neidb.append(rtr)
+        nei_dict[lsa_id] = rtr
 
         for rlink in lsa.attached_links :
             if rlink.link_type == P2P_LINK :
-                neidb[lsa.adv_router].append({"neighbor": rlink.link_id,
-                                              "type": "p2p"})
+                rtr["neighbors"].append({"router_id": rlink.link_id,
+                                         "type": "p2p"})
 
             if rlink.link_type == VIRTUAL_LINK :
-                neidb[lsa.adv_router].append({"neighbor": rlink.link_id,
-                                              "type": "vlink"})
+                rtr["neighbors"].append({"router_id": rlink.link_id,
+                                         "type": "vlink"})
+
 
     # trace network lsa. in network lsa, attached routers must establish
     # neighbor each other (full mesh).
@@ -199,8 +211,13 @@ def convert_lsdb_to_neighbor_info(lsdb) :
         for src in lsa.attached_routers :
             for dst in lsa.attached_routers :
                 if src == dst : continue
-                if not dst in neidb[src] :
-                    neidb[src].append({"neighbor": dst, "type": "network"})
+                nei_dict[src]["neighbors"].append({"router_id": dst,
+                                                   "type": "network"})
+
+    # sort
+    for rtr in neidb :
+        rtr["neighbors"].sort(key = lambda nei: inet_itok(nei["router_id"]))
+    neidb.sort(key = lambda rtr: inet_itok(rtr["router_id"]))
 
     return neidb
 
