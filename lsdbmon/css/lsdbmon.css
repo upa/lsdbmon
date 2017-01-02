@@ -1,0 +1,88 @@
+/* lsdbmon main css */
+
+html {
+	color: #222;
+	font-size: 1em;
+	line-height: 1.4;
+	font-family: Verdana, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0.2em 0 0.2em;
+}
+
+body {
+	padding: 10px 20px 10px 20px;
+	width: 1000px;
+}
+
+
+/* horizontal adjacency table */
+
+table#adj-table {
+	border: 0.5px solid #555;
+	border-collapse: collapse;
+	font-size: 0.9em;
+	width: 1000px;
+}
+
+table#adj-table td, table.adj-table th {
+	border: 0.5px solid;
+}
+
+.adj-box-source {
+	width: 170px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.adj-box {
+	width: 137px;
+	padding: 0;
+	text-align: center;
+	float: left;
+}
+.adj-box-p2p { background-color: #ffe5f2; }
+.adj-box-net { background-color: #e5ffe5; }
+
+
+.clearfix:before,
+.clearfix:after {
+	content: " "; /* 1 */
+	display: table; /* 2 */
+}
+
+.clearfix:after {
+	clear: both;
+}
+
+.timestamp {
+	text-align: right;
+	font-weight: normal;
+}
+
+.content {
+	margin-top: 20px;
+	margin-bottom: 40px;
+}
+
+/* force-directed topology powered by d3js */
+
+.graph {
+	border: 0.5px solid #555;
+}
+
+.links line {
+	stroke: #999;
+	stroke-opacity: 0.6;
+}
+
+.nodes circle {
+	stroke: #fff;
+	stroke-width: 1.5px;
+}

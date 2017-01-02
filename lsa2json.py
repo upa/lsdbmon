@@ -258,23 +258,31 @@ def convert_lsdb_to_graph_info(lsdb) :
     }
     """
 
-    router_list = lsdb.rdb.keys()
-    network_list = lsdb.ndb.keys()
     links = []
 
     # trace router lsa, link type 1 and 4
     for lsa_id, lsa in lsdb.rdb.items() :
         for rlink in lsa.attached_links :
             if rlink.link_type == P2P_LINK or rlink.link_type == VIRTUAL_LINK :
-                links.append({"source": lsa_id, "destination": rlink.link_id})
+                links.append({"source": "rtr:" + lsa_id,
+                              "target": "rtr:" + rlink.link_id})
 
     # trace network lsa.
     for lsa_id, lsa in lsdb.ndb.items() :
         for attached in lsa.attached_routers :
-            links.append({"source": lsa_id, "destination": attached})
+            links.append({"source": "net:" + lsa_id,
+                          "target": "rtr:" + attached})
 
-    return {"router_list": router_list, "network_list": network_list,
-            "links": links }
+    # generate node info
+    nodes = []
+    for x in lsdb.rdb.keys() : nodes.append({"id" : "rtr:" + x,
+                                             "type" : "router",
+                                             "name": x})
+    for x in lsdb.ndb.keys() : nodes.append({"id" : "net:" + x,
+                                             "type" : "network",
+                                             "name": x})
+
+    return {"nodes": nodes, "links": links }
 
 
 def lsdb_diff(lsdb_new, lsdb_old) :

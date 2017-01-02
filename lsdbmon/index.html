@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <title> OSPFv2 LSDB Monitor </title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link rel="stylesheet" href="css/lsdbmon.css" />
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/d3.v4.min.js"></script>
+
+  </head>
+  <body>
+
+    <h1> OSPFv2 Link State DataBase Monitor </h1>
+
+    <h3 class="timestamp"></h3>
+
+    <div class="content">
+      <h2> Adjacency </h2>
+
+      <p>
+	<span class="adj-box-p2p"> Red is P2P neighbor</span> and
+	<span class="adj-box-net"> Green is Network neighbor </span>.
+      <p>
+
+      <table id="adj-table">
+	<thead>
+	  <tr>
+	    <th class="adj-box-source"> Router ID </th>
+	    <th> Adjacent Routers </th>
+	  </tr>
+	</thread>
+	<tbody></tbody>
+      </table>
+    </div>
+
+
+    <div class="content">
+      <h2> Topology </h2>
+      <p>
+	<span class="adj-box-p2p">Red circles</span> are Routers
+	and <span class="adj-box-net">grean circles</span> are
+	OSPF Networks.
+      </p>
+      <svg width="1000" height="800" class="graph"></svg>
+    </div>
+
+
+    <div class="content">
+      <h2> Log </h2>
+    </div>
+
+
+    <script src="js/lsdbmon.js"></script>
+    <script src="js/topology.js"></script>
+
+  </body>
+</html>
