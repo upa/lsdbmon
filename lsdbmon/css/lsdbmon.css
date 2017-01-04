@@ -71,10 +71,23 @@ table#adj-table td, table.adj-table th {
 	margin-bottom: 40px;
 }
 
+
+
 /* force-directed topology powered by d3js */
 
 .graph {
 	border: 0.5px solid #555;
+	float: left;
+}
+
+.graph-info {
+	border-right: 0.5px solid #555;
+	border-top: 0.5px solid #555;
+	border-bottom: 0.5px solid #555;
+	padding: 4px;
+	width: 239px;
+	height 800px;
+	float: left;
 }
 
 .links line {

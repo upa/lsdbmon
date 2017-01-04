@@ -8,7 +8,7 @@ function lsdbmon_insert() {
 
 			insert_timestamp(data.timestamp);
 			insert_adjacency(data.neighbor_info);
-			insert_graph(data["graph_info"]);
+			insert_graph(data.graph_info, data.neighbor_info);
 		});
 }
 
@@ -45,7 +45,7 @@ function insert_adjacency(neighbor_info) {
 
 
 
-function insert_graph(graph) {
+function insert_graph(graph, neighbor) {
 	var svg = d3.select("svg"),
 		width = +svg.attr("width"),
 		height = +svg.attr("height");
@@ -69,24 +69,8 @@ function insert_graph(graph) {
 		.selectAll("circle")
 		.data(graph.nodes)
 		.enter().append("circle")
-		.attr("r", function(d) {
-				if (d.type == "network") {
-					return 4.5;
-				} else if (d.type == "router") {
-					return 7;
-				} else {
-					return color(1);
-				}
-			})
-		.attr("fill", function(d) { 
-				if (d.type == "network") {
-					return "#3cb37a";
-				} else if (d.type == "router") {
-					return "#e95464";
-				} else {
-					return color(1);
-				}
-			})
+		.attr("r", function(d) { return node_default_r(d)})
+		.attr("fill", function(d) { return node_default_fill(d) })
 		.call(d3.drag()
 		      .on("start", dragstarted)
 		      .on("drag", dragged)
@@ -101,6 +85,18 @@ function insert_graph(graph) {
 
 	simulation.force("link")
 		.links(graph.links);
+
+	function node_default_r(d) {
+		if (d.type == "network") { return 4; }
+		else if (d.type == "router") { return 7; }
+		else { return color(1); }
+	}
+
+	function node_default_fill(d) {
+		if (d.type == "network") { return "#3cb37a"; }
+		else if (d.type == "router"){return "#e95464";}
+		else {return color(1); }
+	}
 
 	function ticked() {
 		link
@@ -118,6 +114,53 @@ function insert_graph(graph) {
 		if (!d3.event.active) simulation.alphaTarget(0.3).restart();
 		d.fx = d.x;
 		d.fy = d.y;
+
+		$('div.node-info').empty();
+		$('div.node-info').append("<b>Type:</b> " + d.type + "<br/>");
+		if (d.type == "network") {
+			$('div.node-info').append("<b>LSA ID:</b> "
+						  + d.name +"<br/>");
+		} else if (d.type == "router") {
+			$('div.node-info').append("<b>Router ID:</b> "
+						  + d.name +"<br/>");
+		}
+
+		$('div.node-info').append("<b>Neighbors:</b><br/>");
+		
+		if (d.type == "network") {
+			for (var x = 0; x < graph.links.length; x++) {
+				var link = graph.links[x];
+				if (link.source.id == d.id) {
+					$('div.node-info')
+						.append(link.target.name
+							+ "<br/>");
+				}
+				else if (link.target.id == d.id) {
+					$('div.node-info')
+						.append(link.source.name
+							+ "<br/>");
+				}
+			}
+		}
+
+		if (d.type == "router") {
+			for (var x = 0; x < neighbor.length; x++) {
+				var nei = neighbor[x];
+				if (nei.router_id != d.name)
+					continue;
+				for (var y = 0;
+				     y < nei.neighbors.length; y++) {
+					var n = nei.neighbors[y];
+					$('div.node-info')
+						.append(n.router_id + "<br/>");
+				}
+			}
+		}
+
+		node.attr("r", function(tmp) {
+				if (tmp.id == d.id) return 12;
+				return node_default_r(tmp);
+			});
 	}
 
 	function dragged(d) {
