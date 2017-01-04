@@ -198,6 +198,10 @@ function insert_log() {
 		var lines = data.split(/\r\n|\r|\n/);
 		var log_new = /New/;
 		var log_rem = /Removed/;
+
+		$('div.log-lines').append('<h4>' + lines.length
+					  + ' lines</h4>');
+
 		for (var x in lines) {
 			var x = lines[x].replace(log_new,
 						 '<span class="log-new">'
