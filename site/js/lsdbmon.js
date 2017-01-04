@@ -199,8 +199,8 @@ function insert_log() {
 		var log_new = /New/;
 		var log_rem = /Removed/;
 
-		$('div.log-lines').append('<h4>' + lines.length
-					  + ' lines</h4>');
+		var len = lines.length - 1;
+		$('div.log-lines').append('<h4>' + len + ' lines</h4>');
 
 		for (var x in lines) {
 			var x = lines[x].replace(log_new,
