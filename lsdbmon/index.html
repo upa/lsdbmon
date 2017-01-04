@@ -17,12 +17,24 @@
 
     <h3 class="timestamp"></h3>
 
-    <div class="content">
+    <div class="clearfix">
+      <ul id="menu" class="navi">
+	<li> Contents: </li>
+	<li><a href="#" class="click-all"> All <a/></li>
+	<li><a href="#" class="click-adj"> Adjacency </a></li>
+	<li><a href="#" class="click-topo"> Topology </a></li>
+	<li><a href="#" class="click-log"> Log </a></li>
+      </ul>
+    </div>
+
+
+    <div id="adjacency" class="content">
       <h2> Adjacency </h2>
 
       <p>
-	<span class="adj-box-p2p"> Red is P2P neighbor</span> and
-	<span class="adj-box-net"> green is network neighbor </span>.
+	<span class="adj-box-p2p"> Red </span> indicates P2P neighbor and
+	<span class="adj-box-net"> green </span> indicates broadcast network
+	neighbor.
       <p>
 
       <table id="adj-table">
@@ -37,7 +49,7 @@
     </div>
 
 
-    <div class="content">
+    <div id="topology" class="content">
       <h2> Topology </h2>
       <p>
 	<span class="adj-box-p2p">Red circles</span> are routers
@@ -56,8 +68,9 @@
     </div>
 
 
-    <div class="content">
+    <div id="log" class="content">
       <h2> Log </h2>
+      <div class="log-lines"></div>
     </div>
 
     <script src="js/lsdbmon.js"></script>

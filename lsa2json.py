@@ -319,7 +319,7 @@ def lsdb_diff(lsdb_new, lsdb_old) :
     # find new adjacency
     for router_id, nei_set in nnei.items() :
         if not router_id in onei :
-            lines.append("New Router: %s with Neighbor %s" %
+            lines.append("New Router %s with Neighbor %s" %
                          (router_id, ' '.join(nei_set)))
         else :
             new_nei = nei_set - onei[router_id]
@@ -328,13 +328,13 @@ def lsdb_diff(lsdb_new, lsdb_old) :
                 new_adjacent.add(' '.join(sorted([router_id, nei])))
 
     for new_adj in new_adjacent :
-        lines.append("New Adjacency: %s" % new_adj)
+        lines.append("New Adjacency %s" % new_adj)
 
 
     # find removed adjacency
     for router_id, nei_set in onei.items() :
         if not router_id in nnei :
-            lines.append("Removed Router: %s with Neighbor %s" %
+            lines.append("Removed Router %s with Neighbor %s" %
                          (router_id, ' '.join(nei_set)))
         else :
             rem_nei = nei_set - nnei[router_id]
@@ -342,7 +342,7 @@ def lsdb_diff(lsdb_new, lsdb_old) :
                 rem_adjacent.add(' '.join(sorted([router_id, nei])))
 
     for rem_adj in rem_adjacent :
-        lines.append("Removed Adjacency: %s" % rem_adj)
+        lines.append("Removed Adjacency %s" % rem_adj)
 
     return lines
 
@@ -387,7 +387,7 @@ if __name__ == '__main__' :
         if options.logfile :
             with open(options.logfile, 'a') as f :
                 for l in diff :
-                    f.write(timestamp + ":" + l + "\n")
+                    f.write(timestamp + " " + l + "\n")
         else :
             d["diff_log"] = diff
 

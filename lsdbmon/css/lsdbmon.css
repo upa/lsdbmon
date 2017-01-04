@@ -21,6 +21,23 @@ body {
 	width: 1000px;
 }
 
+/* navi */
+ul.navi {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+ul.navi li {
+	float: left;
+	text-align: center
+}
+
+ul.navi li a {
+	display: block;
+	padding: 0 10px 0 10px;
+	text-decoration: none;
+}
 
 /* horizontal adjacency table */
 
@@ -90,6 +107,10 @@ table#adj-table td, table.adj-table th {
 	float: left;
 }
 
+.node-info {
+	margin-top: 8px;
+}
+
 .links line {
 	stroke: #999;
 	stroke-opacity: 0.6;
@@ -99,3 +120,8 @@ table#adj-table td, table.adj-table th {
 	stroke: #fff;
 	stroke-width: 1.5px;
 }
+
+
+/* log line */
+.log-new { color: green; }
+.log-rem { color: red; }

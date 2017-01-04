@@ -3,12 +3,11 @@
  */
 
 function lsdbmon_insert() {
-
 	$.getJSON("lsadump.json", function(data) {
-
 			insert_timestamp(data.timestamp);
 			insert_adjacency(data.neighbor_info);
 			insert_graph(data.graph_info, data.neighbor_info);
+			insert_log();
 		});
 }
 
@@ -115,6 +114,18 @@ function insert_graph(graph, neighbor) {
 		d.fx = d.x;
 		d.fy = d.y;
 
+		if (d.dragged) {
+			/* if this node is dragged, initialize node info */
+			$('div.node-info').empty();
+			$('div.node-info').text("[click a node]");
+			d.dragged = false;
+			node.attr("r", function(tmp) {
+					return node_default_r(tmp);
+			});
+
+			return;
+		}
+
 		$('div.node-info').empty();
 		$('div.node-info').append("<b>Type:</b> " + d.type + "<br/>");
 		if (d.type == "network") {
@@ -158,9 +169,15 @@ function insert_graph(graph, neighbor) {
 		}
 
 		node.attr("r", function(tmp) {
+
+				/* set all d.dragged to be false */
+				tmp.dragged = false;
+
 				if (tmp.id == d.id) return 12;
 				return node_default_r(tmp);
 			});
+
+		d.dragged = true; /* set this node is dragged */
 	}
 
 	function dragged(d) {
@@ -175,4 +192,46 @@ function insert_graph(graph, neighbor) {
 	}
 }
 
+function insert_log() {
+
+	function process_log(data) {
+		var lines = data.split(/\r\n|\r|\n/);
+		var log_new = /New/;
+		var log_rem = /Removed/;
+		for (var x in lines) {
+			var x = lines[x].replace(log_new,
+						 '<span class="log-new">'
+						 + 'New</span>');
+			var y = x.replace(log_rem,
+					  '<span class="log-rem">'
+					  + 'Removed</span>');
+			$('div.log-lines').append(y + '<br/>');
+		}
+	}
+
+	$.ajax({ url: "log.txt",success:
+			function(d) { return process_log(d);}});
+
+}
+
+
 lsdbmon_insert();
+
+$('a.click-all').click(function(){
+		$('.content').show();
+	});
+
+$('a.click-adj').click(function(){
+		$('.content').hide();
+		$('#adjacency').show();
+	});
+
+$('a.click-topo').click(function(){
+		$('.content').hide();
+		$('#topology').show();
+	});
+
+$('a.click-log').click(function(){
+		$('.content').hide();
+		$('#log').show();
+	});
