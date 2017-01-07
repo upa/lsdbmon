@@ -2,11 +2,24 @@
  * require jquery and d3js
  */
 
+var use_arpa = false;	/* use dns reverse lookup result */
+
 function lsdbmon_insert() {
+
+	var search = location.search;
+	search = search.substring(1, search.length);
+
+	if (search == "use-arpa") {
+		use_arpa = true;
+	} else {
+		use_arpa = false;
+	}
+
 	$.getJSON("lsadump.json", function(data) {
 			insert_timestamp(data.timestamp);
-			insert_adjacency(data.neighbor_info);
-			insert_graph(data.graph_info, data.neighbor_info);
+			insert_adjacency(data.neighbor_info, data.arpa_info);
+			insert_graph(data.graph_info, data.neighbor_info,
+				     data.arpa_info);
 			insert_log();
 		});
 }
@@ -15,15 +28,23 @@ function insert_timestamp(timestamp) {
 	$('.timestamp').text(timestamp);
 }
 
-function insert_adjacency(neighbor_info) {
+function insert_adjacency(neighbor_info, arpa_info) {
 
 	for (var i = 0; i < neighbor_info.length; i++) {
 
 		rtr = neighbor_info[i];
 
-		var content = '<tr>'
-			+ '<td class="adj-box-source">'
-			+ rtr.router_id + '</td><td>';
+		if (use_arpa) {
+			var rid = "rtr:" + rtr.router_id;
+			var content = '<tr>'
+				+ '<td class="adj-box-source">'
+				+ arpa_info[rid]["hostname"] + '</td><td>';
+			
+		} else {
+			var content = '<tr>'
+				+ '<td class="adj-box-source">'
+				+ rtr.router_id + '</td><td>';
+		}
 
 		for (var x = 0; x < rtr.neighbors.length; x++) {
 			var nei = rtr.neighbors[x];
@@ -34,7 +55,16 @@ function insert_adjacency(neighbor_info) {
 			} else {
 				content += '<div class="adj-box">';
 			}
-			content += nei.router_id + '</div>';
+
+			if (use_arpa) {
+				var rid = "rtr:" + nei.router_id;
+				content += arpa_info[rid]["hostname"];
+			} else {
+				content += '<div class="adj-box-fixed">'
+					+ nei.router_id + '</div>';
+			}
+
+			content += '</div>';
 		}
 		content += '</td></tr>';
 		$('table#adj-table tbody').append(content);
@@ -44,7 +74,7 @@ function insert_adjacency(neighbor_info) {
 
 
 
-function insert_graph(graph, neighbor) {
+function insert_graph(graph, neighbor, arpa) {
 	var svg = d3.select("svg"),
 		width = +svg.attr("width"),
 		height = +svg.attr("height");
@@ -128,12 +158,15 @@ function insert_graph(graph, neighbor) {
 
 		$('div.node-info').empty();
 		$('div.node-info').append("<b>Type:</b> " + d.type + "<br/>");
+		var name = use_arpa ? arpa[d.id]["hostname"] : d.name;
+
 		if (d.type == "network") {
 			$('div.node-info').append("<b>LSA ID:</b> "
-						  + d.name +"<br/>");
+						  + name +"<br/>");
+
 		} else if (d.type == "router") {
 			$('div.node-info').append("<b>Router ID:</b> "
-						  + d.name +"<br/>");
+						  + name +"<br/>");
 		}
 
 		$('div.node-info').append("<b>Neighbors:</b><br/>");
@@ -142,14 +175,24 @@ function insert_graph(graph, neighbor) {
 			for (var x = 0; x < graph.links.length; x++) {
 				var link = graph.links[x];
 				if (link.source.id == d.id) {
+
+					name = use_arpa ?
+						arpa[link.target.id]
+						["hostname"] :
+						link.target.name;
+
 					$('div.node-info')
-						.append(link.target.name
-							+ "<br/>");
+						.append(name + "<br/>");
 				}
 				else if (link.target.id == d.id) {
+
+					name = use_arpa ?
+						arpa[link.source.id]
+						["hostname"] :
+						link.source.name;
+
 					$('div.node-info')
-						.append(link.source.name
-							+ "<br/>");
+						.append(name + "<br/>");
 				}
 			}
 		}
@@ -162,8 +205,13 @@ function insert_graph(graph, neighbor) {
 				for (var y = 0;
 				     y < nei.neighbors.length; y++) {
 					var n = nei.neighbors[y];
+					name = use_arpa ?
+						arpa["rtr:" + n.router_id]
+						["hostname"] :
+						n.router_id;
+
 					$('div.node-info')
-						.append(n.router_id + "<br/>");
+						.append(name + "<br/>");
 				}
 			}
 		}

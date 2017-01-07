@@ -18,7 +18,7 @@ h6 {
 
 body {
 	padding: 10px 20px 10px 20px;
-	width: 1000px;
+	width: 1200px;
 }
 
 /* navi */
@@ -59,13 +59,17 @@ table#adj-table td, table.adj-table th {
 }
 
 .adj-box {
-	width: 137px;
-	padding: 0;
+	padding: 0 10px 0 10px;
 	text-align: center;
 	float: left;
 }
+
+.adj-box-fixed {
+	width: 120px;
+}
+
 .adj-box-p2p { background-color: #ffe5f2; }
-.adj-box-net { background-color: #e5ffe5; }
+.adj-box-net { background-color: #fff; }
 
 
 .clearfix:before,
@@ -102,7 +106,7 @@ table#adj-table td, table.adj-table th {
 	border-top: 0.5px solid #555;
 	border-bottom: 0.5px solid #555;
 	padding: 4px;
-	width: 239px;
+	width: 400px;
 	height 800px;
 	float: left;
 }

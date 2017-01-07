@@ -3,6 +3,7 @@
 import re
 import sys
 import json
+import socket
 from optparse import OptionParser
 from datetime import datetime
 
@@ -302,6 +303,29 @@ def convert_lsdb_to_graph_info(lsdb) :
     return {"nodes": nodes, "links": links }
 
 
+def generate_in_addr_arpa(lsdb, use_arpa) :
+
+    # generate node info
+
+    arpa = {}
+
+    def dig_x (ip) :
+        if not use_arpa : return ip
+        try : name = socket.gethostbyaddr(x)[0]
+        except : name = ip
+        return name
+
+    for x in lsdb.rdb.keys() :
+        arpa["rtr:" + x] = { "type" : "router",
+                             "hostname":  dig_x(x)}
+
+    for x in lsdb.ndb.keys() :
+        arpa["net:" + x] = { "type" : "network",
+                             "hostname": dig_x(x) }
+
+    return arpa
+
+
 def lsdb_diff(lsdb_new, lsdb_old) :
 
     """
@@ -360,6 +384,10 @@ if __name__ == '__main__' :
                       dest = 'dumpfile_old', help = "old lsadump file name")
     parser.add_option('-l', '--log', type = "string", default = None,
                       dest = 'logfile', help = "dump diff log file name")
+    parser.add_option('-n', '--no-lookup', action="store_false", 
+                      default = True, dest = "use_arpa",
+                      help = "disable DNS reverse lookup")
+
 
     (options, args) = parser.parse_args()
 
@@ -375,6 +403,7 @@ if __name__ == '__main__' :
         "timestamp": timestamp,
         "neighbor_info" : convert_lsdb_to_neighbor_info(lsdb),
         "graph_info": convert_lsdb_to_graph_info(lsdb),
+        "arpa_info" : generate_in_addr_arpa(lsdb, options.use_arpa),
     }
 
 
